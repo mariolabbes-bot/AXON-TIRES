@@ -23,25 +23,41 @@ export default function RootLayout({
               AXON <span className="text-vani-accent glow-text">TIRE</span>
             </h1>
           </div>
-          <nav className="flex-1 overflow-y-auto p-6 space-y-3">
+          <nav className="flex-1 overflow-y-auto p-6 space-y-2">
             <Link href="/" className="block px-4 py-3 rounded-lg text-slate-300 hover:text-white hover:bg-white/10 glow-border transition-all duration-300">
               <span className="flex items-center space-x-3">
-                <span>⎈</span> <span>Tablero Neural</span>
+                <span>⎈</span> <span>Tablero Principal</span>
+              </span>
+            </Link>
+            <div className="pt-4 pb-2">
+              <span className="text-[10px] uppercase tracking-[0.2em] text-slate-500 font-bold ml-4">Operación</span>
+            </div>
+            <Link href="/vehicles" className="block px-4 py-3 rounded-lg text-vani-cyan bg-vani-cyan/5 border border-vani-cyan/20 shadow-[0_0_15px_rgba(6,182,212,0.1)] hover:bg-vani-cyan/10 transition-all duration-300">
+              <span className="flex items-center space-x-3">
+                <span>⛟</span> <span className="font-bold tracking-wide">Flota y Vehículos</span>
               </span>
             </Link>
             <Link href="/tires" className="block px-4 py-3 rounded-lg text-slate-300 hover:text-white hover:bg-white/10 glow-border transition-all duration-300">
               <span className="flex items-center space-x-3">
-                <span>◎</span> <span>Activos (Neumáticos)</span>
+                <span>◎</span> <span>Neumáticos (TPMS)</span>
               </span>
             </Link>
-            <Link href="/vehicles" className="block px-4 py-3 rounded-lg text-slate-300 hover:text-white hover:bg-white/10 glow-border transition-all duration-300">
+            <Link href="/assets" className="block px-4 py-3 rounded-lg text-slate-300 hover:text-white hover:bg-white/10 glow-border transition-all duration-300">
               <span className="flex items-center space-x-3">
-                <span>⛟</span> <span>Nodos de Flota</span>
+                <span>◱</span> <span>Activos Generales</span>
               </span>
             </Link>
-            <Link href="/reports" className="block px-4 py-3 rounded-lg text-slate-500 hover:text-vani-cyan hover:bg-white/5 glow-border-cyan transition-all duration-300">
+            <div className="pt-4 pb-2">
+              <span className="text-[10px] uppercase tracking-[0.2em] text-slate-500 font-bold ml-4">Administración</span>
+            </div>
+            <Link href="/branches" className="block px-4 py-3 rounded-lg text-slate-300 hover:text-white hover:bg-white/10 glow-border transition-all duration-300">
               <span className="flex items-center space-x-3">
-                <span>◱</span> <span>Métricas CPM</span>
+                <span>⌂</span> <span>Bodegas / Bases</span>
+              </span>
+            </Link>
+            <Link href="/purchases" className="block px-4 py-3 rounded-lg text-slate-300 hover:text-white hover:bg-white/10 glow-border transition-all duration-300">
+              <span className="flex items-center space-x-3">
+                <span>⇲</span> <span>Ingresos de Compra</span>
               </span>
             </Link>
           </nav>

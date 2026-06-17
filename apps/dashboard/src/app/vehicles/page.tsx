@@ -1,97 +1,125 @@
 export default function VehiclesModulePage() {
   return (
-    <div className="space-y-6">
-      <div className="flex justify-between items-center">
-        <h1 className="text-2xl font-bold text-white">Módulo de Vehículos y Configuración</h1>
-        <button className="px-4 py-2 bg-axon-panel border border-axon-border text-white rounded hover:bg-slate-700 transition">
-          + Añadir Vehículo
+    <div className="space-y-8 animate-in fade-in duration-500">
+      
+      {/* Header */}
+      <div className="glass-panel p-6 rounded-2xl relative overflow-hidden group flex justify-between items-center">
+        <div className="absolute top-0 right-0 -mr-4 -mt-4 w-32 h-32 bg-vani-cyan/10 rounded-full blur-3xl"></div>
+        <div>
+          <h1 className="text-3xl font-light text-white tracking-wide mb-1">Nodos de <span className="text-vani-cyan glow-text font-bold">Flota</span></h1>
+          <p className="text-slate-400 font-light">Gestión central de vehículos, asignación de neumáticos y activos generales.</p>
+        </div>
+        <button className="px-5 py-2.5 bg-white/5 hover:bg-white/10 border border-white/10 text-white rounded-lg transition-all tracking-widest text-sm font-light hover:shadow-[0_0_15px_rgba(255,255,255,0.1)]">
+          + AÑADIR NODO
         </button>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {/* Tarjeta de Vehículo Ejemplo */}
-        <div className="bg-axon-panel border border-axon-border rounded-lg p-5">
-          <div className="flex justify-between items-start mb-4">
+      {/* Grid de Vehículos */}
+      <div className="grid grid-cols-1 xl:grid-cols-2 gap-6">
+        
+        {/* Vehículo Card - Principal */}
+        <div className="glass-panel p-6 rounded-2xl relative overflow-hidden group border border-vani-cyan/20">
+          <div className="absolute top-0 right-0 w-64 h-64 bg-vani-cyan/5 rounded-full blur-3xl"></div>
+          
+          <div className="flex justify-between items-start mb-6">
             <div>
-              <h2 className="text-xl font-bold text-white">AB-CD-12</h2>
-              <div className="text-sm text-axon-muted">Tracto Camión • 6x4</div>
+              <div className="flex items-center space-x-3 mb-1">
+                <h2 className="text-2xl font-bold text-white tracking-widest">AB-CD-12</h2>
+                <div className="w-2 h-2 rounded-full bg-vani-cyan shadow-[0_0_8px_rgba(6,182,212,0.8)] animate-pulse"></div>
+              </div>
+              <div className="text-sm text-slate-400 font-mono tracking-wide">ID: RFID-TRUCK-001 | Tractocamión 6x4</div>
             </div>
-            <span className="px-2 py-1 bg-green-900/50 text-green-400 text-xs rounded border border-green-800">
-              En Base (Check-In)
-            </span>
+            <div className="text-right">
+              <div className="text-[10px] text-slate-500 uppercase tracking-widest">Odómetro</div>
+              <div className="text-xl font-light text-white font-mono">151,000 KM</div>
+            </div>
           </div>
 
-          <div className="mb-4">
-            <div className="text-xs text-axon-muted uppercase">Odómetro Actual</div>
-            <div className="text-lg font-medium text-white">450,120 KM</div>
+          <div className="grid grid-cols-2 gap-4 mb-6 relative z-10">
+            <button className="py-3 bg-vani-cyan/10 hover:bg-vani-cyan border border-vani-cyan/30 hover:border-vani-cyan text-vani-cyan hover:text-black rounded-lg transition-all text-xs tracking-widest font-bold shadow-[0_0_10px_rgba(6,182,212,0.1)]">
+              ASIGNAR NEUMÁTICO
+            </button>
+            <button className="py-3 bg-white/5 hover:bg-white/10 border border-white/10 text-white rounded-lg transition-all text-xs tracking-widest font-light">
+              ASIGNAR ACTIVO GENERAL
+            </button>
           </div>
 
-          {/* Esquema Rápido de Ejes (Mockup) */}
-          <div className="bg-axon-bg border border-axon-border rounded p-4 mb-4 flex flex-col items-center space-y-4">
-            {/* Eje 1 (Direccional) */}
-            <div className="flex w-full justify-around px-8">
-              <div className="w-8 h-12 bg-green-500 rounded-sm border-2 border-axon-panel flex flex-col items-center justify-center cursor-pointer hover:ring-2 hover:ring-axon-accent group relative">
-                <span className="text-[10px] font-bold text-black">1I</span>
-                {/* Tooltip Hover */}
-                <div className="hidden group-hover:block absolute bottom-full mb-2 w-48 bg-axon-panel border border-axon-border p-2 rounded shadow-xl z-10 text-left">
-                  <div className="text-white text-xs font-bold">AX-3341 (110 PSI)</div>
-                  <div className="text-axon-muted text-[10px]">KM Posición: 45,100</div>
-                  <div className="text-axon-muted text-[10px]">Surco: 14mm</div>
+          <div className="flex space-x-4">
+            {/* Activos Generales Asignados */}
+            <div className="w-1/3 border-r border-white/10 pr-4 space-y-3">
+              <h3 className="text-xs text-slate-500 uppercase tracking-widest border-b border-white/5 pb-2">Activos (2)</h3>
+              <div className="flex items-center space-x-3 p-2 bg-black/20 rounded border border-white/5">
+                <span className="text-lg">🧯</span>
+                <div>
+                  <div className="text-xs text-slate-200">Extintor 10Kg</div>
+                  <div className="text-[10px] text-slate-500 font-mono">SN-EXT-1001</div>
                 </div>
               </div>
-              <div className="w-10 h-2 bg-axon-border my-auto"></div> {/* Eje físico */}
-              <div className="w-8 h-12 bg-green-500 rounded-sm border-2 border-axon-panel flex flex-col items-center justify-center cursor-pointer hover:ring-2 hover:ring-axon-accent relative group">
-                <span className="text-[10px] font-bold text-black">1D</span>
-                {/* Tooltip Hover */}
-                <div className="hidden group-hover:block absolute bottom-full mb-2 w-48 bg-axon-panel border border-axon-border p-2 rounded shadow-xl z-10 text-left">
-                  <div className="text-white text-xs font-bold">AX-3342 (109 PSI)</div>
-                  <div className="text-axon-muted text-[10px]">KM Posición: 45,100</div>
-                  <div className="text-axon-muted text-[10px]">Surco: 13.5mm</div>
+              <div className="flex items-center space-x-3 p-2 bg-black/20 rounded border border-white/5">
+                <span className="text-lg">🚩</span>
+                <div>
+                  <div className="text-xs text-slate-200">Pértica LED</div>
+                  <div className="text-[10px] text-slate-500 font-mono">SN-PTR-092</div>
                 </div>
               </div>
             </div>
 
-            {/* Eje 2 (Tracción Dual) */}
-            <div className="flex w-full justify-around px-2 mt-4">
-              <div className="flex space-x-1">
-                <div className="w-8 h-12 bg-yellow-500 rounded-sm border-2 border-axon-panel flex flex-col items-center justify-center cursor-pointer"><span className="text-[10px] font-bold text-black">2EI</span></div>
-                <div className="w-8 h-12 bg-yellow-500 rounded-sm border-2 border-axon-panel flex flex-col items-center justify-center cursor-pointer"><span className="text-[10px] font-bold text-black">2II</span></div>
+            {/* Esquema de Neumáticos (Minimalista) */}
+            <div className="w-2/3 pl-2 flex flex-col items-center justify-center space-y-6 py-4">
+              
+              {/* Eje 1 */}
+              <div className="flex items-center w-full justify-center space-x-8">
+                <div className="w-10 h-16 rounded border border-vani-cyan/50 bg-vani-cyan/10 flex items-center justify-center cursor-pointer hover:bg-vani-cyan/20 transition-all shadow-[0_0_10px_rgba(6,182,212,0.2)] relative group">
+                  <span className="text-xs font-mono text-vani-cyan">1I</span>
+                  <div className="hidden group-hover:block absolute bottom-full mb-2 w-40 bg-black/90 border border-white/10 p-3 rounded-lg backdrop-blur-xl z-20">
+                    <div className="text-white text-xs font-bold mb-1">FM-2026-001</div>
+                    <div className="text-vani-cyan text-[10px] mb-1">110 PSI • 35°C</div>
+                    <div className="text-slate-400 text-[10px] font-mono">KM: 10,000</div>
+                  </div>
+                </div>
+                <div className="w-20 h-1 bg-white/10"></div>
+                <div className="w-10 h-16 rounded border border-vani-cyan/50 bg-vani-cyan/10 flex items-center justify-center cursor-pointer hover:bg-vani-cyan/20 transition-all shadow-[0_0_10px_rgba(6,182,212,0.2)]">
+                  <span className="text-xs font-mono text-vani-cyan">1D</span>
+                </div>
               </div>
-              <div className="w-16 h-2 bg-axon-border my-auto"></div>
-              <div className="flex space-x-1">
-                <div className="w-8 h-12 bg-red-500 rounded-sm border-2 border-axon-panel flex flex-col items-center justify-center cursor-pointer"><span className="text-[10px] font-bold text-black">2ID</span></div>
-                <div className="w-8 h-12 bg-green-500 rounded-sm border-2 border-axon-panel flex flex-col items-center justify-center cursor-pointer"><span className="text-[10px] font-bold text-black">2ED</span></div>
+
+              {/* Eje 2 */}
+              <div className="flex items-center w-full justify-center space-x-2">
+                <div className="flex space-x-1">
+                  <div className="w-10 h-16 rounded border border-vani-cyan/50 bg-vani-cyan/10 flex items-center justify-center cursor-pointer"><span className="text-xs font-mono text-vani-cyan">2EI</span></div>
+                  <div className="w-10 h-16 rounded border border-white/20 bg-black/40 flex items-center justify-center cursor-pointer"><span className="text-xs font-mono text-slate-500">+</span></div>
+                </div>
+                <div className="w-20 h-1 bg-white/10"></div>
+                <div className="flex space-x-1">
+                  <div className="w-10 h-16 rounded border border-white/20 bg-black/40 flex items-center justify-center cursor-pointer"><span className="text-xs font-mono text-slate-500">+</span></div>
+                  <div className="w-10 h-16 rounded border border-vani-cyan/50 bg-vani-cyan/10 flex items-center justify-center cursor-pointer"><span className="text-xs font-mono text-vani-cyan">2ED</span></div>
+                </div>
               </div>
-            </div>
-            
-             {/* Eje 3 (Tracción Dual) */}
-             <div className="flex w-full justify-around px-2 mt-2">
-              <div className="flex space-x-1">
-                <div className="w-8 h-12 bg-green-500 rounded-sm border-2 border-axon-panel flex flex-col items-center justify-center"><span className="text-[10px] font-bold text-black">3EI</span></div>
-                <div className="w-8 h-12 bg-green-500 rounded-sm border-2 border-axon-panel flex flex-col items-center justify-center"><span className="text-[10px] font-bold text-black">3II</span></div>
-              </div>
-              <div className="w-16 h-2 bg-axon-border my-auto"></div>
-              <div className="flex space-x-1">
-                <div className="w-8 h-12 bg-green-500 rounded-sm border-2 border-axon-panel flex flex-col items-center justify-center"><span className="text-[10px] font-bold text-black">3ID</span></div>
-                <div className="w-8 h-12 bg-green-500 rounded-sm border-2 border-axon-panel flex flex-col items-center justify-center"><span className="text-[10px] font-bold text-black">3ED</span></div>
-              </div>
+
             </div>
           </div>
-
-          <button className="w-full py-2 bg-axon-border hover:bg-slate-600 text-white rounded transition text-sm font-medium">
-            Ver Telemetría en Vivo
-          </button>
         </div>
 
-        {/* Otra tarjeta ... */}
-        <div className="bg-axon-panel border border-axon-border rounded-lg p-5 flex flex-col justify-center items-center text-center opacity-50">
-          <div className="text-4xl mb-2">🚛</div>
-          <h2 className="text-xl font-bold text-white mb-1">XX-YY-99</h2>
-          <div className="text-sm text-axon-muted mb-4">Semirremolque • Ejes 3</div>
-          <span className="px-2 py-1 bg-blue-900/50 text-blue-400 text-xs rounded border border-blue-800">
-            En Ruta
-          </span>
+        {/* Vehículo Secundario (Ejemplo) */}
+        <div className="glass-panel p-6 rounded-2xl relative overflow-hidden opacity-60 hover:opacity-100 transition-opacity">
+          <div className="flex justify-between items-start mb-6">
+            <div>
+              <div className="flex items-center space-x-3 mb-1">
+                <h2 className="text-2xl font-bold text-slate-300 tracking-widest">XY-ZZ-99</h2>
+              </div>
+              <div className="text-sm text-slate-500 font-mono tracking-wide">ID: RFID-TRUCK-002 | Semirremolque</div>
+            </div>
+            <div className="text-right">
+              <div className="text-[10px] text-slate-600 uppercase tracking-widest">Odómetro</div>
+              <div className="text-xl font-light text-slate-400 font-mono">22,400 KM</div>
+            </div>
+          </div>
+          
+          <div className="h-48 border border-dashed border-white/10 rounded-xl flex items-center justify-center">
+            <span className="text-slate-500 tracking-widest text-xs uppercase">Sin Activos Asignados</span>
+          </div>
         </div>
+
       </div>
     </div>
   );

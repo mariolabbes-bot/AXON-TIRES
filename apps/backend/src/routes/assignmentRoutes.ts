@@ -1,9 +1,17 @@
 import { Router } from 'express';
-import { createAssignment, endAssignment } from '../controllers/assignmentController';
+import { 
+  createTireAssignment, endTireAssignment,
+  createAssetAssignment, endAssetAssignment
+} from '../controllers/assignmentController';
 
 const router = Router();
 
-router.post('/', createAssignment);
-router.post('/:assignment_id/end', endAssignment);
+// Tire Assignments
+router.post('/tire', createTireAssignment);
+router.post('/tire/:assignment_id/end', endTireAssignment);
+
+// General Asset Assignments
+router.post('/asset', createAssetAssignment);
+router.post('/asset/:assignment_id/end', endAssetAssignment);
 
 export default router;

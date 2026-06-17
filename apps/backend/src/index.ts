@@ -12,6 +12,10 @@ import tireRoutes from './routes/tireRoutes';
 import assignmentRoutes from './routes/assignmentRoutes';
 import telemetryRoutes from './routes/telemetryRoutes';
 import companyRoutes from './routes/companyRoutes';
+import branchRoutes from './routes/branchRoutes';
+import purchaseRoutes from './routes/purchaseRoutes';
+import vehicleRoutes from './routes/vehicleRoutes';
+import assetRoutes from './routes/assetRoutes';
 import { requireCompany } from './middleware/authMiddleware';
 
 // Middlewares
@@ -19,6 +23,10 @@ app.use(cors());
 app.use(express.json());
 
 // Rutas protegidas (Multi-Tenant)
+app.use('/api/branches', requireCompany, branchRoutes);
+app.use('/api/purchases', requireCompany, purchaseRoutes);
+app.use('/api/vehicles', requireCompany, vehicleRoutes);
+app.use('/api/assets', requireCompany, assetRoutes);
 app.use('/api/tires', requireCompany, tireRoutes);
 app.use('/api/assignments', requireCompany, assignmentRoutes);
 app.use('/api/telemetry', requireCompany, telemetryRoutes);
