@@ -16,6 +16,8 @@ import branchRoutes from './routes/branchRoutes';
 import purchaseRoutes from './routes/purchaseRoutes';
 import vehicleRoutes from './routes/vehicleRoutes';
 import assetRoutes from './routes/assetRoutes';
+import checkpointRoutes from './routes/checkpointRoutes';
+import inventoryRoutes from './routes/inventoryRoutes';
 import { requireCompany } from './middleware/authMiddleware';
 
 // Middlewares
@@ -31,6 +33,8 @@ app.use('/api/tires', requireCompany, tireRoutes);
 app.use('/api/assignments', requireCompany, assignmentRoutes);
 app.use('/api/telemetry', requireCompany, telemetryRoutes);
 app.use('/api/companies', requireCompany, companyRoutes);
+app.use('/api/checkpoints', requireCompany, checkpointRoutes);
+app.use('/api/inventory', requireCompany, inventoryRoutes);
 
 // Test DB Route
 app.get('/api/health', async (req, res) => {

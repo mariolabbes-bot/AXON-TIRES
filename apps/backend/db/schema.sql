@@ -61,11 +61,15 @@ CREATE TABLE vehicles (
     company_id UUID REFERENCES companies(id) NOT NULL,
     branch_id UUID REFERENCES branches(id), -- Base actual del vehículo
     plate VARCHAR(15) NOT NULL,
+    brand VARCHAR(50),
+    model VARCHAR(50),
+    year INT,
     rfid_id VARCHAR(100), -- Identificador RFID principal del vehículo
     vehicle_type VARCHAR(50) NOT NULL,
     axle_config VARCHAR(50) NOT NULL,
     current_odometer INT DEFAULT 0,
     odometer_updated_at TIMESTAMPTZ DEFAULT NOW(),
+    status VARCHAR(20) DEFAULT 'EN_BASE', -- 'EN_BASE' | 'EN_RUTA'
     created_at TIMESTAMPTZ DEFAULT NOW(),
     UNIQUE(company_id, plate),
     UNIQUE(company_id, rfid_id)
@@ -187,8 +191,34 @@ CREATE TABLE checkpoint_events (
     company_id UUID REFERENCES companies(id) NOT NULL,
     branch_id UUID REFERENCES branches(id),
     vehicle_id UUID REFERENCES vehicles(id),
-    event_type VARCHAR(20) NOT NULL,
+    event_type VARCHAR(20) NOT NULL, -- 'CHECK_IN', 'CHECK_OUT'
+    status VARCHAR(20) NOT NULL DEFAULT 'OK', -- 'OK', 'DIVERGENTE'
     operator_id UUID REFERENCES users(id),
+    unknown_rfids JSONB DEFAULT '[]'::jsonb,
     notes TEXT,
     event_timestamp TIMESTAMPTZ DEFAULT NOW()
+);
+
+-- 13. Mobile App Logs
+CREATE TABLE control_documents (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    company_id UUID REFERENCES companies(id) NOT NULL,
+    document_number VARCHAR(100) NOT NULL,
+    action_type VARCHAR(50) NOT NULL, -- 'RECAUCHAJE', 'BAJA'
+    operator_id UUID REFERENCES users(id),
+    affected_tires JSONB DEFAULT '[]'::jsonb, -- array of UUIDs or RFIDs
+    notes TEXT,
+    created_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+CREATE TABLE inventory_audits (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    company_id UUID REFERENCES companies(id) NOT NULL,
+    branch_id UUID REFERENCES branches(id) NOT NULL,
+    operator_id UUID REFERENCES users(id),
+    total_scanned INT NOT NULL DEFAULT 0,
+    missing_assets JSONB DEFAULT '[]'::jsonb,
+    extra_assets JSONB DEFAULT '[]'::jsonb,
+    status VARCHAR(20) NOT NULL DEFAULT 'COMPLETED',
+    audit_date TIMESTAMPTZ DEFAULT NOW()
 );

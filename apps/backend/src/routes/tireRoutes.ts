@@ -1,10 +1,10 @@
 import { Router } from 'express';
-import { getTires, createTire, updateTireState } from '../controllers/tireController';
+import { getTires, updateTireState, massUpdateTires } from '../controllers/tireController';
 
 const router = Router();
 
 router.get('/', getTires);
-router.post('/', createTire);
+router.patch('/mass-update', massUpdateTires);
 router.patch('/:fire_mark_id/state', updateTireState);
 
 export default router;

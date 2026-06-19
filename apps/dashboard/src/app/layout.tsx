@@ -19,9 +19,7 @@ export default function RootLayout({
         {/* SIDEBAR (Glassmorphism) */}
         <aside className="w-64 glass-panel flex flex-col z-20 m-4 rounded-2xl overflow-hidden shadow-2xl">
           <div className="h-20 flex items-center justify-center border-b border-white/5 bg-white/5">
-            <h1 className="text-2xl font-black text-white tracking-widest drop-shadow-lg">
-              AXON <span className="text-vani-accent glow-text">TIRE</span>
-            </h1>
+            <img src="/logo.png" alt="AXON TIRE Logo" className="h-12 object-contain drop-shadow-[0_0_15px_rgba(255,255,255,0.3)]" />
           </div>
           <nav className="flex-1 overflow-y-auto p-6 space-y-2">
             <Link href="/" className="block px-4 py-3 rounded-lg text-slate-300 hover:text-white hover:bg-white/10 glow-border transition-all duration-300">
@@ -58,6 +56,15 @@ export default function RootLayout({
             <Link href="/purchases" className="block px-4 py-3 rounded-lg text-slate-300 hover:text-white hover:bg-white/10 glow-border transition-all duration-300">
               <span className="flex items-center space-x-3">
                 <span>⇲</span> <span>Ingresos de Compra</span>
+              </span>
+            </Link>
+            
+            <div className="pt-4 pb-2">
+              <span className="text-[10px] uppercase tracking-[0.2em] text-slate-500 font-bold ml-4">Terminales</span>
+            </div>
+            <Link href="/mobile" target="_blank" className="block px-4 py-3 rounded-lg text-yellow-400 hover:text-yellow-300 hover:bg-yellow-500/10 border border-yellow-500/20 shadow-[0_0_15px_rgba(250,204,21,0.1)] transition-all duration-300">
+              <span className="flex items-center space-x-3">
+                <span>📱</span> <span>App Móvil (Simulador)</span>
               </span>
             </Link>
           </nav>

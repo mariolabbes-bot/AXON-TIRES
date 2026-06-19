@@ -1,126 +1,410 @@
+'use client';
+
+import { useState, useEffect } from 'react';
+import { api } from '@/lib/api';
+
 export default function VehiclesModulePage() {
-  return (
-    <div className="space-y-8 animate-in fade-in duration-500">
+  const [vehicles, setVehicles] = useState<any[]>([]);
+  const [availableTires, setAvailableTires] = useState<any[]>([]);
+  const [availableAssets, setAvailableAssets] = useState<any[]>([]);
+  const [searchQuery, setSearchQuery] = useState('');
+  
+  const [loading, setLoading] = useState(true);
+  
+  // Modals & Selected
+  const [showAddNode, setShowAddNode] = useState(false);
+  const [selectedVehicle, setSelectedVehicle] = useState<any | null>(null);
+  
+  // Assignment Simulation
+  const [assigningPosition, setAssigningPosition] = useState<string | null>(null);
+
+  // Form
+  const [newNodeForm, setNewNodeForm] = useState({ 
+    plate: '', vehicle_type: 'Tractocamión', axle_config: '6x4', current_odometer: 0,
+    brand: '', model: '', year: new Date().getFullYear() 
+  });
+
+  const loadData = async () => {
+    try {
+      setLoading(true);
+      const [vData, tData, aData] = await Promise.all([
+        api.getVehicles(),
+        api.getTires(),
+        api.getAssets()
+      ]);
+      setVehicles(vData);
+      setAvailableTires(tData.filter((t: any) => t.state.includes('Bodega')));
+      setAvailableAssets(aData.filter((a: any) => a.state.includes('Bodega')));
       
-      {/* Header */}
-      <div className="glass-panel p-6 rounded-2xl relative overflow-hidden group flex justify-between items-center">
+      if (selectedVehicle) {
+        const updated = vData.find((v:any) => v.id === selectedVehicle.id);
+        if (updated) setSelectedVehicle(updated);
+      }
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    loadData();
+  }, []);
+
+  const filteredVehicles = vehicles.filter(v => v.plate.toLowerCase().includes(searchQuery.toLowerCase()));
+
+  const handleAddNode = async (e: React.FormEvent) => {
+    e.preventDefault();
+    try {
+      await api.createVehicle({ ...newNodeForm, branch_id: null });
+      setShowAddNode(false);
+      loadData();
+    } catch (err) {
+      console.error(err);
+    }
+  };
+
+  const handleSimulateRfidAssign = async (position: string) => {
+    if (availableTires.length === 0) {
+      alert("No hay neumáticos en bodega disponibles para asignar.");
+      return;
+    }
+    const randomTire = availableTires[0]; // Tomamos el primero
+    try {
+      await api.assignTire({ 
+        tire_fire_mark: randomTire.fire_mark_id,
+        axle_position: position,
+        start_odometer: selectedVehicle.current_odometer,
+        vehicle_id: selectedVehicle.id 
+      });
+      setAssigningPosition(null);
+      loadData(); // Refresca en segundo plano para actualizar el SelectedVehicle
+    } catch (err) {
+      console.error(err);
+      alert("Error asignando neumático.");
+    }
+  };
+
+  // Helper para dibujar diagrama según config
+  const getAxleLayout = (config: string) => {
+    if (config === '6x4') {
+      return [
+        { name: 'Frontal', positions: ['1I', '1D'] },
+        { name: 'Tracción 1', positions: ['2EI', '2II', '2ID', '2ED'] },
+        { name: 'Tracción 2', positions: ['3EI', '3II', '3ID', '3ED'] }
+      ];
+    }
+    if (config === '4x2') {
+      return [
+        { name: 'Frontal', positions: ['1I', '1D'] },
+        { name: 'Tracción', positions: ['2EI', '2II', '2ID', '2ED'] }
+      ];
+    }
+    if (config === '2 Ejes') {
+      return [
+        { name: 'Eje 1', positions: ['1EI', '1II', '1ID', '1ED'] },
+        { name: 'Eje 2', positions: ['2EI', '2II', '2ID', '2ED'] }
+      ];
+    }
+    // Default fallback
+    return [{ name: 'Eje 1', positions: ['1I', '1D'] }];
+  };
+
+  return (
+    <div className="space-y-8 animate-in fade-in duration-500 relative h-[calc(100vh-100px)] flex flex-col">
+      
+      {/* Header Fijo */}
+      <div className="glass-panel p-6 rounded-2xl relative overflow-hidden flex-shrink-0 group flex flex-col md:flex-row justify-between items-start md:items-center z-0 gap-4">
         <div className="absolute top-0 right-0 -mr-4 -mt-4 w-32 h-32 bg-vani-cyan/10 rounded-full blur-3xl"></div>
         <div>
           <h1 className="text-3xl font-light text-white tracking-wide mb-1">Nodos de <span className="text-vani-cyan glow-text font-bold">Flota</span></h1>
-          <p className="text-slate-400 font-light">Gestión central de vehículos, asignación de neumáticos y activos generales.</p>
+          <p className="text-slate-400 font-light text-sm">Gestión central de vehículos en vista de tabla de alto rendimiento.</p>
         </div>
-        <button className="px-5 py-2.5 bg-white/5 hover:bg-white/10 border border-white/10 text-white rounded-lg transition-all tracking-widest text-sm font-light hover:shadow-[0_0_15px_rgba(255,255,255,0.1)]">
-          + AÑADIR NODO
-        </button>
+        <div className="flex w-full md:w-auto space-x-4">
+          <input 
+            type="text" 
+            placeholder="Buscar por Patente..." 
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            className="flex-1 bg-black/40 border border-white/10 text-white rounded-lg px-4 py-2 focus:border-vani-cyan focus:outline-none"
+          />
+          <button onClick={() => setShowAddNode(true)} className="whitespace-nowrap px-5 py-2.5 bg-vani-cyan/20 hover:bg-vani-cyan/40 border border-vani-cyan/30 text-vani-cyan font-bold rounded-lg transition-all tracking-widest text-sm shadow-[0_0_15px_rgba(6,182,212,0.2)]">
+            + AÑADIR NODO
+          </button>
+        </div>
       </div>
 
-      {/* Grid de Vehículos */}
-      <div className="grid grid-cols-1 xl:grid-cols-2 gap-6">
-        
-        {/* Vehículo Card - Principal */}
-        <div className="glass-panel p-6 rounded-2xl relative overflow-hidden group border border-vani-cyan/20">
-          <div className="absolute top-0 right-0 w-64 h-64 bg-vani-cyan/5 rounded-full blur-3xl"></div>
-          
-          <div className="flex justify-between items-start mb-6">
-            <div>
-              <div className="flex items-center space-x-3 mb-1">
-                <h2 className="text-2xl font-bold text-white tracking-widest">AB-CD-12</h2>
-                <div className="w-2 h-2 rounded-full bg-vani-cyan shadow-[0_0_8px_rgba(6,182,212,0.8)] animate-pulse"></div>
-              </div>
-              <div className="text-sm text-slate-400 font-mono tracking-wide">ID: RFID-TRUCK-001 | Tractocamión 6x4</div>
-            </div>
-            <div className="text-right">
-              <div className="text-[10px] text-slate-500 uppercase tracking-widest">Odómetro</div>
-              <div className="text-xl font-light text-white font-mono">151,000 KM</div>
-            </div>
-          </div>
+      {/* Tabla Maestra (Scrollable) */}
+      <div className="flex-1 glass-panel rounded-2xl overflow-auto border border-white/10">
+        {loading && !selectedVehicle ? (
+           <div className="flex items-center justify-center h-full">
+             <div className="w-8 h-8 border-4 border-vani-cyan border-t-transparent rounded-full animate-spin"></div>
+           </div>
+        ) : (
+          <table className="w-full text-left border-collapse min-w-[800px]">
+            <thead className="sticky top-0 bg-[#0f172a] z-10 shadow-md border-b border-white/10">
+              <tr className="text-slate-500 text-[10px] uppercase tracking-widest">
+                <th className="p-4 font-medium w-12"></th>
+                <th className="p-4 font-medium">Patente</th>
+                <th className="p-4 font-medium">Marca / Modelo</th>
+                <th className="p-4 font-medium">Año</th>
+                <th className="p-4 font-medium">Tipo y Config</th>
+                <th className="p-4 font-medium">Estado</th>
+                <th className="p-4 font-medium text-right">Odómetro</th>
+                <th className="p-4 font-medium text-center">Neumáticos</th>
+              </tr>
+            </thead>
+            <tbody className="text-slate-300 divide-y divide-white/5">
+              {filteredVehicles.length === 0 ? (
+                <tr><td colSpan={7} className="p-8 text-center text-slate-500">No se encontraron vehículos.</td></tr>
+              ) : (
+                filteredVehicles.map((v) => (
+                  <tr 
+                    key={v.id} 
+                    onClick={() => setSelectedVehicle(v)}
+                    className="hover:bg-vani-cyan/5 cursor-pointer transition-all group"
+                  >
+                    <td className="p-4 text-center">
+                      <div className="w-2 h-2 rounded-full bg-vani-cyan shadow-[0_0_8px_rgba(6,182,212,0.8)] opacity-50 group-hover:opacity-100"></div>
+                    </td>
+                    <td className="p-4 font-bold text-white text-lg tracking-wider">{v.plate}</td>
+                    <td className="p-4 text-sm">{v.brand || '-'} {v.model || '-'}</td>
+                    <td className="p-4 text-sm text-slate-400">{v.year || '-'}</td>
+                    <td className="p-4">
+                      <span className="block text-sm text-white">{v.vehicle_type}</span>
+                      <span className="text-[10px] uppercase text-vani-cyan border border-vani-cyan/30 rounded px-1">{v.axle_config}</span>
+                    </td>
+                    <td className="p-4">
+                      <span className={`text-[10px] px-2 py-1 rounded-full uppercase font-bold tracking-wider ${v.status === 'EN_RUTA' ? 'bg-orange-500/20 text-orange-400 border border-orange-500/30' : 'bg-vani-cyan/20 text-vani-cyan border border-vani-cyan/30'}`}>
+                        {v.status || 'EN_BASE'}
+                      </span>
+                    </td>
+                    <td className="p-4 text-right font-mono text-sm">{v.current_odometer?.toLocaleString()} KM</td>
+                    <td className="p-4 text-center">
+                      <span className="bg-white/10 px-2 py-1 rounded text-xs">{(v.tires?.length) || 0} instalados</span>
+                    </td>
+                  </tr>
+                ))
+              )}
+            </tbody>
+          </table>
+        )}
+      </div>
 
-          <div className="grid grid-cols-2 gap-4 mb-6 relative z-10">
-            <button className="py-3 bg-vani-cyan/10 hover:bg-vani-cyan border border-vani-cyan/30 hover:border-vani-cyan text-vani-cyan hover:text-black rounded-lg transition-all text-xs tracking-widest font-bold shadow-[0_0_10px_rgba(6,182,212,0.1)]">
-              ASIGNAR NEUMÁTICO
-            </button>
-            <button className="py-3 bg-white/5 hover:bg-white/10 border border-white/10 text-white rounded-lg transition-all text-xs tracking-widest font-light">
-              ASIGNAR ACTIVO GENERAL
-            </button>
-          </div>
-
-          <div className="flex space-x-4">
-            {/* Activos Generales Asignados */}
-            <div className="w-1/3 border-r border-white/10 pr-4 space-y-3">
-              <h3 className="text-xs text-slate-500 uppercase tracking-widest border-b border-white/5 pb-2">Activos (2)</h3>
-              <div className="flex items-center space-x-3 p-2 bg-black/20 rounded border border-white/5">
-                <span className="text-lg">🧯</span>
+      {/* --- INSPECTOR DE VEHÍCULO (Modal Full/Lateral) --- */}
+      {selectedVehicle && (
+        <div className="fixed inset-0 bg-black/90 backdrop-blur-md flex items-center justify-center z-40 p-4">
+          <div className="bg-[#0f172a] border border-vani-cyan/40 w-full max-w-5xl h-[85vh] rounded-2xl shadow-[0_0_50px_rgba(6,182,212,0.15)] flex flex-col md:flex-row overflow-hidden animate-in zoom-in-95 duration-300">
+            
+            {/* Panel Izquierdo: Info y Activos Generales */}
+            <div className="w-full md:w-1/3 bg-black/40 border-r border-white/10 p-6 flex flex-col">
+              <div className="flex justify-between items-start mb-6">
                 <div>
-                  <div className="text-xs text-slate-200">Extintor 10Kg</div>
-                  <div className="text-[10px] text-slate-500 font-mono">SN-EXT-1001</div>
+                  <h2 className="text-4xl font-bold text-white tracking-widest mb-1">{selectedVehicle.plate}</h2>
+                  <p className="text-vani-cyan uppercase tracking-widest text-xs font-bold">{selectedVehicle.brand} {selectedVehicle.model} ({selectedVehicle.year})</p>
                 </div>
+                <button onClick={() => setSelectedVehicle(null)} className="text-slate-400 hover:text-white text-2xl leading-none">&times;</button>
               </div>
-              <div className="flex items-center space-x-3 p-2 bg-black/20 rounded border border-white/5">
-                <span className="text-lg">🚩</span>
-                <div>
-                  <div className="text-xs text-slate-200">Pértica LED</div>
-                  <div className="text-[10px] text-slate-500 font-mono">SN-PTR-092</div>
-                </div>
-              </div>
-            </div>
 
-            {/* Esquema de Neumáticos (Minimalista) */}
-            <div className="w-2/3 pl-2 flex flex-col items-center justify-center space-y-6 py-4">
-              
-              {/* Eje 1 */}
-              <div className="flex items-center w-full justify-center space-x-8">
-                <div className="w-10 h-16 rounded border border-vani-cyan/50 bg-vani-cyan/10 flex items-center justify-center cursor-pointer hover:bg-vani-cyan/20 transition-all shadow-[0_0_10px_rgba(6,182,212,0.2)] relative group">
-                  <span className="text-xs font-mono text-vani-cyan">1I</span>
-                  <div className="hidden group-hover:block absolute bottom-full mb-2 w-40 bg-black/90 border border-white/10 p-3 rounded-lg backdrop-blur-xl z-20">
-                    <div className="text-white text-xs font-bold mb-1">FM-2026-001</div>
-                    <div className="text-vani-cyan text-[10px] mb-1">110 PSI • 35°C</div>
-                    <div className="text-slate-400 text-[10px] font-mono">KM: 10,000</div>
+              <div className="space-y-4 mb-8">
+                <div className="bg-white/5 p-4 rounded-xl border border-white/10">
+                  <p className="text-[10px] text-slate-500 uppercase tracking-widest">Odómetro Actual</p>
+                  <p className="text-2xl font-mono text-white">{selectedVehicle.current_odometer?.toLocaleString()} KM</p>
+                </div>
+                <div className="bg-white/5 p-4 rounded-xl border border-white/10">
+                  <p className="text-[10px] text-slate-500 uppercase tracking-widest">Configuración</p>
+                  <div className="flex items-center space-x-2">
+                    <p className="text-sm font-bold text-white">{selectedVehicle.vehicle_type} - {selectedVehicle.axle_config}</p>
+                    <span className={`text-[10px] px-2 py-0.5 rounded-full uppercase font-bold tracking-wider ${selectedVehicle.status === 'EN_RUTA' ? 'bg-orange-500/20 text-orange-400 border border-orange-500/30' : 'bg-vani-cyan/20 text-vani-cyan border border-vani-cyan/30'}`}>
+                        {selectedVehicle.status || 'EN_BASE'}
+                    </span>
                   </div>
                 </div>
-                <div className="w-20 h-1 bg-white/10"></div>
-                <div className="w-10 h-16 rounded border border-vani-cyan/50 bg-vani-cyan/10 flex items-center justify-center cursor-pointer hover:bg-vani-cyan/20 transition-all shadow-[0_0_10px_rgba(6,182,212,0.2)]">
-                  <span className="text-xs font-mono text-vani-cyan">1D</span>
+              </div>
+
+              <div className="flex-1 overflow-auto">
+                <h3 className="text-xs text-slate-400 uppercase tracking-widest border-b border-white/10 pb-2 mb-4">Activos Generales Instalados</h3>
+                {selectedVehicle.general_assets?.length === 0 ? (
+                  <p className="text-xs text-slate-500 italic">No hay activos (ej. Extintores) asignados.</p>
+                ) : (
+                  <div className="space-y-2">
+                    {selectedVehicle.general_assets?.map((a:any) => (
+                      <div key={a.id} className="p-3 bg-white/5 border border-white/10 rounded flex justify-between items-center">
+                        <div>
+                          <p className="text-sm text-white font-bold">{a.asset_type}</p>
+                          <p className="text-[10px] font-mono text-slate-400">{a.serial_number}</p>
+                        </div>
+                        <span className="text-lg">{a.asset_type.includes('Extintor') ? '🧯' : '🚩'}</span>
+                      </div>
+                    ))}
+                  </div>
+                )}
+                <button className="mt-4 w-full py-2 border border-white/20 text-slate-300 rounded hover:bg-white/10 transition-all text-xs tracking-widest">+ ASIGNAR ACTIVO (Próximamente)</button>
+              </div>
+            </div>
+
+            {/* Panel Derecho: Diagrama de Neumáticos interactivo */}
+            <div className="w-full md:w-2/3 p-6 flex flex-col bg-[url('https://www.transparenttextures.com/patterns/carbon-fibre.png')] relative">
+              <div className="absolute inset-0 bg-gradient-to-b from-[#0f172a]/80 to-[#0f172a]/95 pointer-events-none"></div>
+              
+              <div className="relative z-10 flex justify-between items-center mb-6 border-b border-white/10 pb-4">
+                <h3 className="text-lg text-white font-light tracking-wide">Diagrama de <span className="text-vani-cyan font-bold">Neumáticos</span></h3>
+                <div className="flex space-x-4 text-xs">
+                  <div className="flex items-center space-x-2"><div className="w-3 h-3 rounded bg-vani-cyan shadow-[0_0_8px_rgba(6,182,212,0.5)]"></div><span className="text-slate-300">Instalado</span></div>
+                  <div className="flex items-center space-x-2"><div className="w-3 h-3 rounded bg-slate-700 border border-white/10"></div><span className="text-slate-300">Vacío</span></div>
                 </div>
               </div>
 
-              {/* Eje 2 */}
-              <div className="flex items-center w-full justify-center space-x-2">
-                <div className="flex space-x-1">
-                  <div className="w-10 h-16 rounded border border-vani-cyan/50 bg-vani-cyan/10 flex items-center justify-center cursor-pointer"><span className="text-xs font-mono text-vani-cyan">2EI</span></div>
-                  <div className="w-10 h-16 rounded border border-white/20 bg-black/40 flex items-center justify-center cursor-pointer"><span className="text-xs font-mono text-slate-500">+</span></div>
-                </div>
-                <div className="w-20 h-1 bg-white/10"></div>
-                <div className="flex space-x-1">
-                  <div className="w-10 h-16 rounded border border-white/20 bg-black/40 flex items-center justify-center cursor-pointer"><span className="text-xs font-mono text-slate-500">+</span></div>
-                  <div className="w-10 h-16 rounded border border-vani-cyan/50 bg-vani-cyan/10 flex items-center justify-center cursor-pointer"><span className="text-xs font-mono text-vani-cyan">2ED</span></div>
+              {/* Contenedor del Chasis (Diagrama) */}
+              <div className="relative z-10 flex-1 flex items-center justify-center overflow-auto">
+                <div className="bg-black/40 border border-white/10 p-8 rounded-[3rem] w-full max-w-md mx-auto relative shadow-2xl flex flex-col space-y-12 py-16">
+                  {/* Cabina Ilustrativa */}
+                  <div className="absolute top-0 left-1/2 -translate-x-1/2 w-48 h-20 bg-white/5 border border-white/10 rounded-t-3xl -mt-4 border-b-0"></div>
+
+                  {getAxleLayout(selectedVehicle.axle_config).map((axle, i) => (
+                     <div key={i} className="relative flex justify-center items-center w-full">
+                       {/* Eje Metálico (Línea horizontal) */}
+                       <div className="absolute w-[80%] h-2 bg-slate-800 rounded-full shadow-inner z-0"></div>
+                       
+                       <div className="flex justify-between w-[95%] z-10">
+                         {/* Lado Izquierdo */}
+                         <div className="flex space-x-2">
+                           {axle.positions.filter(p => p.endsWith('I')).reverse().map(pos => {
+                             const installedTire = selectedVehicle.tires?.find((t:any) => t.axle_position === pos);
+                             return (
+                               <div key={pos} 
+                                    onClick={() => !installedTire && setAssigningPosition(pos)}
+                                    className={`relative w-12 h-24 rounded flex items-center justify-center font-bold text-[10px] transition-all
+                                      ${installedTire 
+                                        ? 'bg-gradient-to-b from-vani-cyan to-blue-600 text-black shadow-[0_0_15px_rgba(6,182,212,0.5)] cursor-default' 
+                                        : 'bg-slate-800 border-2 border-dashed border-white/20 text-slate-500 hover:border-vani-cyan hover:text-vani-cyan cursor-pointer hover:bg-vani-cyan/10'
+                                      }`}>
+                                 {installedTire ? (
+                                   <div className="-rotate-90 whitespace-nowrap">{installedTire.fire_mark_id}</div>
+                                 ) : (
+                                   <div className="flex flex-col items-center"><span>{pos}</span><span className="text-[8px] font-normal mt-1">+ Instalar</span></div>
+                                 )}
+                               </div>
+                             );
+                           })}
+                         </div>
+
+                         {/* Diferencial/Centro */}
+                         <div className="w-12 h-12 bg-slate-900 border border-white/10 rounded-full z-10 flex items-center justify-center shadow-lg">
+                           <span className="text-[8px] text-slate-500 uppercase">{axle.name}</span>
+                         </div>
+
+                         {/* Lado Derecho */}
+                         <div className="flex space-x-2">
+                           {axle.positions.filter(p => p.endsWith('D')).map(pos => {
+                             const installedTire = selectedVehicle.tires?.find((t:any) => t.axle_position === pos);
+                             return (
+                               <div key={pos} 
+                                    onClick={() => !installedTire && setAssigningPosition(pos)}
+                                    className={`relative w-12 h-24 rounded flex items-center justify-center font-bold text-[10px] transition-all
+                                      ${installedTire 
+                                        ? 'bg-gradient-to-b from-vani-cyan to-blue-600 text-black shadow-[0_0_15px_rgba(6,182,212,0.5)] cursor-default' 
+                                        : 'bg-slate-800 border-2 border-dashed border-white/20 text-slate-500 hover:border-vani-cyan hover:text-vani-cyan cursor-pointer hover:bg-vani-cyan/10'
+                                      }`}>
+                                 {installedTire ? (
+                                   <div className="-rotate-90 whitespace-nowrap">{installedTire.fire_mark_id}</div>
+                                 ) : (
+                                   <div className="flex flex-col items-center"><span>{pos}</span><span className="text-[8px] font-normal mt-1">+ Instalar</span></div>
+                                 )}
+                               </div>
+                             );
+                           })}
+                         </div>
+                       </div>
+                     </div>
+                  ))}
                 </div>
               </div>
 
+              {/* Sub-modal de asignación RFID rápida */}
+              {assigningPosition && (
+                <div className="absolute inset-0 bg-black/80 z-20 flex items-center justify-center rounded-2xl backdrop-blur-sm">
+                  <div className="bg-[#0f172a] border border-vani-cyan shadow-[0_0_30px_rgba(6,182,212,0.3)] p-6 rounded-2xl text-center max-w-sm w-full">
+                    <div className="w-16 h-16 bg-vani-cyan/20 rounded-full flex items-center justify-center mx-auto mb-4 border border-vani-cyan/50">
+                      <span className="text-2xl animate-pulse">📡</span>
+                    </div>
+                    <h4 className="text-white text-lg font-bold mb-2">Instalación en Posición {assigningPosition}</h4>
+                    <p className="text-slate-400 text-sm mb-6">Apunta el lector RFID de mano al neumático físico que deseas instalar para continuar.</p>
+                    <div className="flex flex-col space-y-3">
+                      <button onClick={() => handleSimulateRfidAssign(assigningPosition)} className="w-full py-3 bg-vani-cyan text-black font-bold uppercase tracking-widest text-sm rounded shadow-[0_0_15px_rgba(6,182,212,0.5)] hover:bg-white transition-all">
+                        SIMULAR LECTURA RFID
+                      </button>
+                      <button onClick={() => setAssigningPosition(null)} className="w-full py-2 text-slate-500 hover:text-white uppercase tracking-widest text-xs">
+                        Cancelar
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              )}
             </div>
           </div>
         </div>
+      )}
 
-        {/* Vehículo Secundario (Ejemplo) */}
-        <div className="glass-panel p-6 rounded-2xl relative overflow-hidden opacity-60 hover:opacity-100 transition-opacity">
-          <div className="flex justify-between items-start mb-6">
-            <div>
-              <div className="flex items-center space-x-3 mb-1">
-                <h2 className="text-2xl font-bold text-slate-300 tracking-widest">XY-ZZ-99</h2>
+      {/* Modal Add Node (Create) */}
+      {showAddNode && (
+        <div className="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center z-50">
+          <div className="bg-[#0f172a] border border-vani-cyan/30 p-6 rounded-2xl w-full max-w-md shadow-[0_0_30px_rgba(6,182,212,0.1)]">
+            <h2 className="text-xl text-white font-light mb-6 tracking-wide">Añadir Nuevo Nodo</h2>
+            <form onSubmit={handleAddNode} className="space-y-4">
+              <div>
+                <label className="block text-xs text-slate-400 uppercase tracking-widest mb-1">Patente</label>
+                <input type="text" required value={newNodeForm.plate} onChange={e => setNewNodeForm({...newNodeForm, plate: e.target.value})} className="w-full bg-black/50 border border-white/10 text-white rounded p-3 focus:outline-none focus:border-vani-cyan transition-all" />
               </div>
-              <div className="text-sm text-slate-500 font-mono tracking-wide">ID: RFID-TRUCK-002 | Semirremolque</div>
-            </div>
-            <div className="text-right">
-              <div className="text-[10px] text-slate-600 uppercase tracking-widest">Odómetro</div>
-              <div className="text-xl font-light text-slate-400 font-mono">22,400 KM</div>
-            </div>
-          </div>
-          
-          <div className="h-48 border border-dashed border-white/10 rounded-xl flex items-center justify-center">
-            <span className="text-slate-500 tracking-widest text-xs uppercase">Sin Activos Asignados</span>
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-xs text-slate-400 uppercase tracking-widest mb-1">Marca</label>
+                  <input type="text" value={newNodeForm.brand} onChange={e => setNewNodeForm({...newNodeForm, brand: e.target.value})} className="w-full bg-black/50 border border-white/10 text-white rounded p-3 focus:outline-none focus:border-vani-cyan transition-all" />
+                </div>
+                <div>
+                  <label className="block text-xs text-slate-400 uppercase tracking-widest mb-1">Modelo</label>
+                  <input type="text" value={newNodeForm.model} onChange={e => setNewNodeForm({...newNodeForm, model: e.target.value})} className="w-full bg-black/50 border border-white/10 text-white rounded p-3 focus:outline-none focus:border-vani-cyan transition-all" />
+                </div>
+              </div>
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-xs text-slate-400 uppercase tracking-widest mb-1">Año</label>
+                  <input type="number" value={newNodeForm.year} onChange={e => setNewNodeForm({...newNodeForm, year: parseInt(e.target.value)})} className="w-full bg-black/50 border border-white/10 text-white rounded p-3 focus:outline-none focus:border-vani-cyan transition-all" />
+                </div>
+                <div>
+                  <label className="block text-xs text-slate-400 uppercase tracking-widest mb-1">Odómetro</label>
+                  <input type="number" required value={newNodeForm.current_odometer} onChange={e => setNewNodeForm({...newNodeForm, current_odometer: parseInt(e.target.value)})} className="w-full bg-black/50 border border-white/10 text-white rounded p-3 focus:outline-none focus:border-vani-cyan transition-all" />
+                </div>
+              </div>
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-xs text-slate-400 uppercase tracking-widest mb-1">Tipo</label>
+                  <select value={newNodeForm.vehicle_type} onChange={e => setNewNodeForm({...newNodeForm, vehicle_type: e.target.value})} className="w-full bg-black/50 border border-white/10 text-white rounded p-3 focus:outline-none focus:border-vani-cyan">
+                    <option>Tractocamión</option>
+                    <option>Semirremolque</option>
+                    <option>Camioneta</option>
+                  </select>
+                </div>
+                <div>
+                  <label className="block text-xs text-slate-400 uppercase tracking-widest mb-1">Ejes</label>
+                  <select value={newNodeForm.axle_config} onChange={e => setNewNodeForm({...newNodeForm, axle_config: e.target.value})} className="w-full bg-black/50 border border-white/10 text-white rounded p-3 focus:outline-none focus:border-vani-cyan">
+                    <option>6x4</option>
+                    <option>6x2</option>
+                    <option>4x2</option>
+                    <option>2 Ejes</option>
+                    <option>3 Ejes</option>
+                  </select>
+                </div>
+              </div>
+              <div className="flex justify-end space-x-3 pt-4 border-t border-white/5">
+                <button type="button" onClick={() => setShowAddNode(false)} className="px-4 py-2 text-slate-400 hover:text-white transition-all text-sm tracking-wide">Cancelar</button>
+                <button type="submit" className="px-6 py-2 bg-vani-cyan hover:bg-cyan-400 text-black font-bold rounded shadow-[0_0_15px_rgba(6,182,212,0.3)] transition-all text-sm tracking-wide">Guardar Vehículo</button>
+              </div>
+            </form>
           </div>
         </div>
+      )}
 
-      </div>
     </div>
   );
 }

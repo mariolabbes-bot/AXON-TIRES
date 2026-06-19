@@ -34,14 +34,17 @@ async function seed() {
 
     // 3. Crear Vehículos (Camiones)
     const vehicles = [];
-    for (let i = 1; i <= 5; i++) {
-      const vRes = await pool.query(
-        `INSERT INTO vehicles (company_id, branch_id, plate, rfid_id, vehicle_type, axle_config, current_odometer) 
-         VALUES ($1, $2, $3, $4, 'Tractocamión', '6x4', $5) RETURNING id`,
-        [companyId, baseId, `AB-CD-1${i}`, `RFID-TRUCK-00${i}`, 150000 + (i * 1000)]
-      );
-      vehicles.push(vRes.rows[0].id);
-    }
+    console.log('Inserting Vehicles...');
+    const vehiclesRes = await pool.query(`
+      INSERT INTO vehicles (company_id, plate, rfid_id, vehicle_type, axle_config, current_odometer, brand, model, year)
+      VALUES 
+        ($1, 'AB-CD-12', 'VEH-RFID-001', 'Tractocamión', '6x4', 45100, 'Volvo', 'FH16', 2022),
+        ($1, 'EF-GH-34', 'VEH-RFID-002', 'Semirremolque', '2 Ejes', 12000, 'Randon', 'Plano', 2021),
+        ($1, 'IJ-KL-56', 'VEH-RFID-003', 'Tractocamión', '4x2', 85000, 'Scania', 'R450', 2020),
+        ($1, 'MN-OP-78', 'VEH-RFID-004', 'Semirremolque', '3 Ejes', 4000, 'Tremac', 'Tolva', 2023),
+        ($1, 'QR-ST-90', 'VEH-RFID-005', 'Camioneta', '2 Ejes', 105000, 'Toyota', 'Hilux', 2019)
+      RETURNING id, plate
+    `, [companyId]);
     console.log(`5 Vehículos creados.`);
 
     // 4. Crear un Documento de Compra inicial

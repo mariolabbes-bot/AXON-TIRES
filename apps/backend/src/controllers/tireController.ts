@@ -45,3 +45,39 @@ export const updateTireState = async (req: AuthRequest, res: Response) => {
     res.status(500).json({ error: error.message });
   }
 };
+
+export const massUpdateTires = async (req: AuthRequest, res: Response) => {
+    const companyId = req.companyId;
+    const { action_type, new_state, rfids } = req.body; // rfids = array of fire_mark_id
+    const document_number = `DOC-${Date.now()}`;
+    const operator_id = null; // until we add real auth
+
+    try {
+        await pool.query('BEGIN');
+        
+        // Update all tires
+        const updateRes = await pool.query(
+            `UPDATE tires SET state = $1 
+             WHERE fire_mark_id = ANY($2::text[]) AND company_id = $3
+             RETURNING fire_mark_id`,
+            [new_state, rfids, companyId]
+        );
+
+        // Generate control document
+        const insertDoc = await pool.query(
+            `INSERT INTO control_documents (company_id, document_number, action_type, operator_id, affected_tires)
+             VALUES ($1, $2, $3, $4, $5) RETURNING *`,
+            [companyId, document_number, action_type, operator_id, JSON.stringify(rfids)]
+        );
+
+        await pool.query('COMMIT');
+        res.json({
+            message: `Actualizados ${updateRes.rowCount} neumáticos a ${new_state}`,
+            document: insertDoc.rows[0]
+        });
+    } catch (error: any) {
+        await pool.query('ROLLBACK');
+        console.error('Error in mass update:', error);
+        res.status(500).json({ error: error.message });
+    }
+};
