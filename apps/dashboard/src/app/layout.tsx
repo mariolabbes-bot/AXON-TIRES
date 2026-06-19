@@ -18,8 +18,8 @@ export default function RootLayout({
         
         {/* SIDEBAR (Glassmorphism) */}
         <aside className="w-64 glass-panel flex flex-col z-20 m-4 rounded-2xl overflow-hidden shadow-2xl">
-          <div className="h-20 flex items-center justify-center border-b border-white/5 bg-white/5">
-            <img src="/logo.png" alt="AXON TIRE Logo" className="h-12 object-contain drop-shadow-[0_0_15px_rgba(255,255,255,0.3)]" />
+          <div className="py-6 flex items-center justify-center border-b border-white/5 bg-white/5">
+            <img src="/logo.png" alt="AXON TIRE Logo" className="h-[7.5rem] object-contain drop-shadow-[0_0_15px_rgba(255,255,255,0.3)]" />
           </div>
           <nav className="flex-1 overflow-y-auto p-6 space-y-2">
             <Link href="/" className="block px-4 py-3 rounded-lg text-slate-300 hover:text-white hover:bg-white/10 glow-border transition-all duration-300">
