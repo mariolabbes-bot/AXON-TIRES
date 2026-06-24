@@ -205,9 +205,11 @@ CREATE TABLE control_documents (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     company_id UUID REFERENCES companies(id) NOT NULL,
     document_number VARCHAR(100) NOT NULL,
-    action_type VARCHAR(50) NOT NULL, -- 'RECAUCHAJE', 'BAJA'
+    action_type VARCHAR(50) NOT NULL, -- 'RECAUCHAJE_ENVIO', 'RECAUCHAJE_RECEPCION', 'REPARACION_ENVIO', etc.
+    status VARCHAR(20) DEFAULT 'PENDIENTE', -- 'PENDIENTE', 'RECIBIDO', 'PARCIAL'
+    supplier_branch_id UUID REFERENCES branches(id),
     operator_id UUID REFERENCES users(id),
-    affected_tires JSONB DEFAULT '[]'::jsonb, -- array of UUIDs or RFIDs
+    affected_tires JSONB DEFAULT '[]'::jsonb, -- array of UUIDs or RFIDs or detailed objects
     notes TEXT,
     created_at TIMESTAMPTZ DEFAULT NOW()
 );

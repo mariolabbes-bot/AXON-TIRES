@@ -38,6 +38,7 @@ export const api = {
   receiveRetread: (data: any) => fetchApi('/tires/retread/receive', { method: 'POST', body: JSON.stringify(data) }),
   disposeTires: (data: any) => fetchApi('/tires/dispose', { method: 'POST', body: JSON.stringify(data) }),
   getVehicleCheckpoints: (vehicleId: string) => fetchApi(`/checkpoints/vehicle/${vehicleId}`, { cache: 'no-store' }),
+  getPendingGuides: () => fetchApi('/tires/pending-guides', { cache: 'no-store' }),
 
   // --- GENERIC METHODS FOR MOBILE APP ---
   get: (url: string) => fetchApi(url, { method: 'GET', cache: 'no-store' }),

@@ -5,12 +5,14 @@ import {
   massUpdateTires, 
   sendTiresToRetread, 
   receiveTiresFromRetread, 
-  disposeTires 
+  disposeTires,
+  getPendingGuides
 } from '../controllers/tireController';
 
 const router = Router();
 
 router.get('/', getTires);
+router.get('/pending-guides', getPendingGuides);
 router.patch('/mass-update', massUpdateTires);
 router.post('/retread/send', sendTiresToRetread);
 router.post('/retread/receive', receiveTiresFromRetread);

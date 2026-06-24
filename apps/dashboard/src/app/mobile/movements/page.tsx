@@ -18,8 +18,8 @@ export default function MovementsMainMenu() {
       color: "from-purple-500 to-indigo-400"
     },
     {
-      title: "Despacho y Recibo Recauchaje",
-      description: "Envío masivo a planta y recepción de neumáticos (OK / Rechazo)",
+      title: "Recauchajes y Reparaciones",
+      description: "Control de envíos a plantas externas, recepción basada en guías y pendientes",
       path: "/mobile/movements/retread",
       icon: "♻️",
       color: "from-amber-500 to-orange-400"
