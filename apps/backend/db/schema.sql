@@ -195,6 +195,7 @@ CREATE TABLE checkpoint_events (
     status VARCHAR(20) NOT NULL DEFAULT 'OK', -- 'OK', 'DIVERGENTE'
     operator_id UUID REFERENCES users(id),
     unknown_rfids JSONB DEFAULT '[]'::jsonb,
+    missing_rfids JSONB DEFAULT '[]'::jsonb,
     notes TEXT,
     event_timestamp TIMESTAMPTZ DEFAULT NOW()
 );

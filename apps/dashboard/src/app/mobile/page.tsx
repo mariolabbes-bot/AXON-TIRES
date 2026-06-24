@@ -11,9 +11,9 @@ export default function MobileMenu() {
       color: "from-blue-500 to-vani-cyan"
     },
     {
-      title: "Movimientos Masivos",
-      description: "Baja o Recauchaje por lotes con lector RFID",
-      path: "/mobile/bulk",
+      title: "Movimientos",
+      description: "Asignación, recauchaje y disposición final de activos",
+      path: "/mobile/movements",
       icon: "📦",
       color: "from-orange-500 to-yellow-500"
     },

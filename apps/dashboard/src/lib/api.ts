@@ -34,6 +34,11 @@ export const api = {
   assignTire: (data: any) => fetchApi('/assignments/tire', { method: 'POST', body: JSON.stringify(data) }),
   assignAsset: (data: any) => fetchApi('/assignments/asset', { method: 'POST', body: JSON.stringify(data) }),
 
+  sendRetread: (data: any) => fetchApi('/tires/retread/send', { method: 'POST', body: JSON.stringify(data) }),
+  receiveRetread: (data: any) => fetchApi('/tires/retread/receive', { method: 'POST', body: JSON.stringify(data) }),
+  disposeTires: (data: any) => fetchApi('/tires/dispose', { method: 'POST', body: JSON.stringify(data) }),
+  getVehicleCheckpoints: (vehicleId: string) => fetchApi(`/checkpoints/vehicle/${vehicleId}`, { cache: 'no-store' }),
+
   // --- GENERIC METHODS FOR MOBILE APP ---
   get: (url: string) => fetchApi(url, { method: 'GET', cache: 'no-store' }),
   post: (url: string, data: any) => fetchApi(url, { method: 'POST', body: JSON.stringify(data) }),

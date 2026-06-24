@@ -50,10 +50,10 @@ export const createCheckpoint = async (req: AuthRequest, res: Response) => {
     // 3. Create checkpoint event
     const insertRes = await pool.query(
       `INSERT INTO checkpoint_events 
-        (company_id, branch_id, vehicle_id, event_type, status, operator_id, unknown_rfids, notes)
-       VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
+        (company_id, branch_id, vehicle_id, event_type, status, operator_id, unknown_rfids, missing_rfids, notes)
+       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
        RETURNING *`,
-      [company_id, branch_id, vehicle_id, event_type, status, operator_id, JSON.stringify(unknownRfids), notes]
+      [company_id, branch_id, vehicle_id, event_type, status, operator_id, JSON.stringify(unknownRfids), JSON.stringify(missingRfids), notes]
     );
 
     // 4. Update Vehicle Status

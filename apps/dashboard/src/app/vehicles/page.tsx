@@ -18,6 +18,10 @@ export default function VehiclesModulePage() {
   // Assignment Simulation
   const [assigningPosition, setAssigningPosition] = useState<string | null>(null);
 
+  // Checkpoints log inside vehicle inspector
+  const [checkpoints, setCheckpoints] = useState<any[]>([]);
+  const [inspectorTab, setInspectorTab] = useState<'diagram' | 'log'>('diagram');
+
   // Form
   const [newNodeForm, setNewNodeForm] = useState({ 
     plate: '', vehicle_type: 'Tractocamión', axle_config: '6x4', current_odometer: 0,
@@ -50,6 +54,17 @@ export default function VehiclesModulePage() {
   useEffect(() => {
     loadData();
   }, []);
+
+  useEffect(() => {
+    if (selectedVehicle) {
+      api.getVehicleCheckpoints(selectedVehicle.id)
+        .then(res => setCheckpoints(res))
+        .catch(console.error);
+    } else {
+      setCheckpoints([]);
+      setInspectorTab('diagram');
+    }
+  }, [selectedVehicle]);
 
   const filteredVehicles = vehicles.filter(v => v.plate.toLowerCase().includes(searchQuery.toLowerCase()));
 
@@ -248,78 +263,151 @@ export default function VehiclesModulePage() {
               <div className="absolute inset-0 bg-gradient-to-b from-[#0f172a]/80 to-[#0f172a]/95 pointer-events-none"></div>
               
               <div className="relative z-10 flex justify-between items-center mb-6 border-b border-white/10 pb-4">
-                <h3 className="text-lg text-white font-light tracking-wide">Diagrama de <span className="text-vani-cyan font-bold">Neumáticos</span></h3>
-                <div className="flex space-x-4 text-xs">
-                  <div className="flex items-center space-x-2"><div className="w-3 h-3 rounded bg-vani-cyan shadow-[0_0_8px_rgba(6,182,212,0.5)]"></div><span className="text-slate-300">Instalado</span></div>
-                  <div className="flex items-center space-x-2"><div className="w-3 h-3 rounded bg-slate-700 border border-white/10"></div><span className="text-slate-300">Vacío</span></div>
+                <div className="flex space-x-6">
+                  <button 
+                    onClick={() => setInspectorTab('diagram')}
+                    className={`text-lg tracking-wide transition-all ${inspectorTab === 'diagram' ? 'text-white font-bold border-b-2 border-vani-cyan pb-1' : 'text-slate-400 hover:text-white'}`}
+                  >
+                    Diagrama de Neumáticos
+                  </button>
+                  <button 
+                    onClick={() => setInspectorTab('log')}
+                    className={`text-lg tracking-wide transition-all ${inspectorTab === 'log' ? 'text-white font-bold border-b-2 border-vani-cyan pb-1' : 'text-slate-400 hover:text-white'}`}
+                  >
+                    Bitácora y Controles
+                  </button>
                 </div>
+                {inspectorTab === 'diagram' && (
+                  <div className="flex space-x-4 text-xs">
+                    <div className="flex items-center space-x-2"><div className="w-3 h-3 rounded bg-vani-cyan shadow-[0_0_8px_rgba(6,182,212,0.5)]"></div><span className="text-slate-300">Instalado</span></div>
+                    <div className="flex items-center space-x-2"><div className="w-3 h-3 rounded bg-slate-700 border border-white/10"></div><span className="text-slate-300">Vacío</span></div>
+                  </div>
+                )}
               </div>
 
               {/* Contenedor del Chasis (Diagrama) */}
-              <div className="relative z-10 flex-1 flex items-center justify-center overflow-auto">
-                <div className="bg-black/40 border border-white/10 p-8 rounded-[3rem] w-full max-w-md mx-auto relative shadow-2xl flex flex-col space-y-12 py-16">
-                  {/* Cabina Ilustrativa */}
-                  <div className="absolute top-0 left-1/2 -translate-x-1/2 w-48 h-20 bg-white/5 border border-white/10 rounded-t-3xl -mt-4 border-b-0"></div>
+              {inspectorTab === 'diagram' && (
+                <div className="relative z-10 flex-1 flex items-center justify-center overflow-auto">
+                  <div className="bg-black/40 border border-white/10 p-8 rounded-[3rem] w-full max-w-md mx-auto relative shadow-2xl flex flex-col space-y-12 py-16">
+                    {/* Cabina Ilustrativa */}
+                    <div className="absolute top-0 left-1/2 -translate-x-1/2 w-48 h-20 bg-white/5 border border-white/10 rounded-t-3xl -mt-4 border-b-0"></div>
 
-                  {getAxleLayout(selectedVehicle.axle_config).map((axle, i) => (
-                     <div key={i} className="relative flex justify-center items-center w-full">
-                       {/* Eje Metálico (Línea horizontal) */}
-                       <div className="absolute w-[80%] h-2 bg-slate-800 rounded-full shadow-inner z-0"></div>
-                       
-                       <div className="flex justify-between w-[95%] z-10">
-                         {/* Lado Izquierdo */}
-                         <div className="flex space-x-2">
-                           {axle.positions.filter(p => p.endsWith('I')).reverse().map(pos => {
-                             const installedTire = selectedVehicle.tires?.find((t:any) => t.axle_position === pos);
-                             return (
-                               <div key={pos} 
-                                    onClick={() => !installedTire && setAssigningPosition(pos)}
-                                    className={`relative w-12 h-24 rounded flex items-center justify-center font-bold text-[10px] transition-all
-                                      ${installedTire 
-                                        ? 'bg-gradient-to-b from-vani-cyan to-blue-600 text-black shadow-[0_0_15px_rgba(6,182,212,0.5)] cursor-default' 
-                                        : 'bg-slate-800 border-2 border-dashed border-white/20 text-slate-500 hover:border-vani-cyan hover:text-vani-cyan cursor-pointer hover:bg-vani-cyan/10'
-                                      }`}>
-                                 {installedTire ? (
-                                   <div className="-rotate-90 whitespace-nowrap">{installedTire.fire_mark_id}</div>
-                                 ) : (
-                                   <div className="flex flex-col items-center"><span>{pos}</span><span className="text-[8px] font-normal mt-1">+ Instalar</span></div>
-                                 )}
-                               </div>
-                             );
-                           })}
-                         </div>
+                    {getAxleLayout(selectedVehicle.axle_config).map((axle, i) => (
+                       <div key={i} className="relative flex justify-center items-center w-full">
+                         {/* Eje Metálico (Línea horizontal) */}
+                         <div className="absolute w-[80%] h-2 bg-slate-800 rounded-full shadow-inner z-0"></div>
+                         
+                         <div className="flex justify-between w-[95%] z-10">
+                           {/* Lado Izquierdo */}
+                           <div className="flex space-x-2">
+                             {axle.positions.filter(p => p.endsWith('I')).reverse().map(pos => {
+                               const installedTire = selectedVehicle.tires?.find((t:any) => t.axle_position === pos);
+                               return (
+                                 <div key={pos} 
+                                      onClick={() => !installedTire && setAssigningPosition(pos)}
+                                      className={`relative w-12 h-24 rounded flex items-center justify-center font-bold text-[10px] transition-all
+                                        ${installedTire 
+                                          ? 'bg-gradient-to-b from-vani-cyan to-blue-600 text-black shadow-[0_0_15px_rgba(6,182,212,0.5)] cursor-default' 
+                                          : 'bg-slate-800 border-2 border-dashed border-white/20 text-slate-500 hover:border-vani-cyan hover:text-vani-cyan cursor-pointer hover:bg-vani-cyan/10'
+                                        }`}>
+                                   {installedTire ? (
+                                     <div className="-rotate-90 whitespace-nowrap">{installedTire.fire_mark_id}</div>
+                                   ) : (
+                                     <div className="flex flex-col items-center"><span>{pos}</span><span className="text-[8px] font-normal mt-1">+ Instalar</span></div>
+                                   )}
+                                 </div>
+                               );
+                             })}
+                           </div>
 
-                         {/* Diferencial/Centro */}
-                         <div className="w-12 h-12 bg-slate-900 border border-white/10 rounded-full z-10 flex items-center justify-center shadow-lg">
-                           <span className="text-[8px] text-slate-500 uppercase">{axle.name}</span>
-                         </div>
+                           {/* Diferencial/Centro */}
+                           <div className="w-12 h-12 bg-slate-900 border border-white/10 rounded-full z-10 flex items-center justify-center shadow-lg">
+                             <span className="text-[8px] text-slate-500 uppercase">{axle.name}</span>
+                           </div>
 
-                         {/* Lado Derecho */}
-                         <div className="flex space-x-2">
-                           {axle.positions.filter(p => p.endsWith('D')).map(pos => {
-                             const installedTire = selectedVehicle.tires?.find((t:any) => t.axle_position === pos);
-                             return (
-                               <div key={pos} 
-                                    onClick={() => !installedTire && setAssigningPosition(pos)}
-                                    className={`relative w-12 h-24 rounded flex items-center justify-center font-bold text-[10px] transition-all
-                                      ${installedTire 
-                                        ? 'bg-gradient-to-b from-vani-cyan to-blue-600 text-black shadow-[0_0_15px_rgba(6,182,212,0.5)] cursor-default' 
-                                        : 'bg-slate-800 border-2 border-dashed border-white/20 text-slate-500 hover:border-vani-cyan hover:text-vani-cyan cursor-pointer hover:bg-vani-cyan/10'
-                                      }`}>
-                                 {installedTire ? (
-                                   <div className="-rotate-90 whitespace-nowrap">{installedTire.fire_mark_id}</div>
-                                 ) : (
-                                   <div className="flex flex-col items-center"><span>{pos}</span><span className="text-[8px] font-normal mt-1">+ Instalar</span></div>
-                                 )}
-                               </div>
-                             );
-                           })}
+                           {/* Lado Derecho */}
+                           <div className="flex space-x-2">
+                             {axle.positions.filter(p => p.endsWith('D')).map(pos => {
+                               const installedTire = selectedVehicle.tires?.find((t:any) => t.axle_position === pos);
+                               return (
+                                 <div key={pos} 
+                                      onClick={() => !installedTire && setAssigningPosition(pos)}
+                                      className={`relative w-12 h-24 rounded flex items-center justify-center font-bold text-[10px] transition-all
+                                        ${installedTire 
+                                          ? 'bg-gradient-to-b from-vani-cyan to-blue-600 text-black shadow-[0_0_15px_rgba(6,182,212,0.5)] cursor-default' 
+                                          : 'bg-slate-800 border-2 border-dashed border-white/20 text-slate-500 hover:border-vani-cyan hover:text-vani-cyan cursor-pointer hover:bg-vani-cyan/10'
+                                        }`}>
+                                   {installedTire ? (
+                                     <div className="-rotate-90 whitespace-nowrap">{installedTire.fire_mark_id}</div>
+                                   ) : (
+                                     <div className="flex flex-col items-center"><span>{pos}</span><span className="text-[8px] font-normal mt-1">+ Instalar</span></div>
+                                   )}
+                                 </div>
+                               );
+                             })}
+                           </div>
                          </div>
                        </div>
-                     </div>
-                  ))}
+                    ))}
+                  </div>
                 </div>
-              </div>
+              )}
+
+              {/* Bitácora de Controles */}
+              {inspectorTab === 'log' && (
+                <div className="relative z-10 flex-1 overflow-y-auto space-y-4 pr-2">
+                  {checkpoints.length === 0 ? (
+                    <p className="text-slate-500 italic text-center py-20 text-sm">No se registran eventos de control para este vehículo.</p>
+                  ) : (
+                    <div className="space-y-4">
+                      {checkpoints.map((cp: any) => (
+                        <div key={cp.id} className={`p-5 rounded-2xl border bg-black/40 transition-all ${cp.status === 'DIVERGENTE' ? 'border-red-500/30 hover:border-red-500/50 shadow-[0_0_15px_rgba(239,68,68,0.05)]' : 'border-white/5 hover:border-white/10'}`}>
+                          <div className="flex justify-between items-start mb-2">
+                            <div className="flex items-center space-x-3">
+                              <span className={`text-[10px] px-2.5 py-1 rounded font-bold uppercase tracking-widest ${cp.event_type === 'SALIDA_A_RUTA' ? 'bg-vani-cyan/10 text-vani-cyan border border-vani-cyan/25' : 'bg-orange-500/10 text-orange-400 border border-orange-500/25'}`}>
+                                {cp.event_type === 'SALIDA_A_RUTA' ? 'Salida a Ruta' : 'Llegada a Base'}
+                              </span>
+                              <span className="text-xs text-slate-500 font-mono">{new Date(cp.event_timestamp).toLocaleString()}</span>
+                            </div>
+                            <span className={`text-[10px] px-2.5 py-1 rounded-full font-bold uppercase tracking-widest ${cp.status === 'OK' ? 'bg-green-500/10 text-green-400 border border-green-500/20' : 'bg-red-500/10 text-red-500 border border-red-500/20'}`}>
+                              {cp.status === 'OK' ? 'Cuadratura OK' : 'Divergencia'}
+                            </span>
+                          </div>
+
+                          <div className="text-xs text-slate-400 space-y-2 mt-4 font-sans">
+                            <p className="flex justify-between border-b border-white/5 pb-1"><span className="text-slate-500 font-sans">Base/Sucursal:</span> <span className="text-white font-medium">{cp.branch_name || 'Ruta'}</span></p>
+                            {cp.notes && <p className="italic text-slate-500 bg-black/20 p-2.5 rounded border border-white/5">"{cp.notes}"</p>}
+                            
+                            {/* Missing RFIDs */}
+                            {cp.missing_rfids && cp.missing_rfids.length > 0 && (
+                              <div className="bg-red-500/5 border border-red-500/10 p-3 rounded-lg mt-3">
+                                <span className="text-[10px] text-red-400 font-bold uppercase block mb-2 tracking-wide font-sans">❌ FALTANTES EN VEHÍCULO (NO DETECTADOS):</span>
+                                <div className="grid grid-cols-2 gap-1.5 text-[10px] font-mono">
+                                  {cp.missing_rfids.map((r: string) => (
+                                    <div key={r} className="text-red-400/90 bg-red-500/5 px-2 py-1 rounded border border-red-500/10">⚠️ {r}</div>
+                                  ))}
+                                </div>
+                              </div>
+                            )}
+
+                            {/* Unknown RFIDs */}
+                            {cp.unknown_rfids && cp.unknown_rfids.length > 0 && (
+                              <div className="bg-yellow-500/5 border border-yellow-500/10 p-3 rounded-lg mt-3">
+                                <span className="text-[10px] text-yellow-500 font-bold uppercase block mb-2 tracking-wide font-sans">❓ LEÍDOS NO REGISTRADOS EN FICHA:</span>
+                                <div className="grid grid-cols-2 gap-1.5 text-[10px] font-mono">
+                                  {cp.unknown_rfids.map((r: string) => (
+                                    <div key={r} className="text-yellow-400/90 bg-yellow-500/5 px-2 py-1 rounded border border-yellow-500/10">🔍 {r}</div>
+                                  ))}
+                                </div>
+                              </div>
+                            )}
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              )}
 
               {/* Sub-modal de asignación RFID rápida */}
               {assigningPosition && (
